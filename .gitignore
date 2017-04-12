@@ -1,0 +1,3 @@
+*.DS_Store
+PiClient/PiClient.xcodeproj/xcuserdata/
+PiClient/PiClient.xcodeproj/project.xcworkspace/xcuserdata/
