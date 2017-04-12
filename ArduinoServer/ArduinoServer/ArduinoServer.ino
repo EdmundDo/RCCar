@@ -1,53 +1,51 @@
 
 #include <ESP8266WiFi.h>
-#include <WiFiClient.h> 
-#include <WiFiServer.h>
+#include <WiFiUdp.h>
 
 const char *ssid = "RC";
 const char *password = "12345678";
+const int port = 3305;
 
-WiFiServer server(3305);
+WiFiUDP udp;
 
 void setup() {
   Serial.begin(9600);
-  Serial.println();
+
   Serial.println("Configuring access point...");
   
-  /* You can remove the password parameter if you want the AP to be open. */
   WiFi.softAP(ssid, password, 3);
 
   IPAddress myIP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(myIP);
   
-  server.begin();
+  udp.begin(port);
   Serial.println("Server started");
 }
 
 void loop() {
-  WiFiClient client = server.available();
-
-  if(!client) {
-    return;
-  }
+  int packetSize = udp.parsePacket();
   
-  IPAddress clientIP = client.remoteIP();
-  Serial.print("Client IP: ");
-  Serial.println(clientIP);
-
-  char command = client.read();
-  Serial.println(command);
+  if (packetSize) {
+    char buf[packetSize];
     
-  if(command == 'w') {
-    Serial.println("W was pressed");
-  } else if (command == 'a') {
-    Serial.println("A was pressed");
-  } else if (command == 'd') {
-    Serial.println("D was pressed");
-  } else if (command == 's') {
-    Serial.println("S was pressed");
-  } else {
-    Serial.println("Received something");
+    Serial.print("Received packet of size ");
+    Serial.println(packetSize);
+    
+    Serial.print("From ");
+    IPAddress remoteIp = udp.remoteIP();
+    Serial.print(remoteIp);
+    
+    Serial.print(", port ");
+    Serial.println(udp.remotePort());
+
+    int len = udp.read(buf, packetSize);
+    if (len > 0) {
+      buf[len] = 0;
+    }
+    
+    Serial.println("Contents:");
+    Serial.println(buf);
   }
   
 }
