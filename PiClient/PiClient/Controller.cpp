@@ -27,26 +27,26 @@ int main(int argc, const char *argv[]) {
     pinMode(37, INPUT);
     pullUpDnControl(37, PUD_DOWN);
     
-    Connection server("192.168.6.102", "3305");
+    Connection server("192.168.4.1", "3305");
     
     while(true) {
         if(digitalRead(29) == HIGH) {
-            char *msg = "Hello";
+            char *msg = "w";
             server.sendsig(msg, strlen(msg));
         } else if(digitalRead(31) == HIGH) {
-            char *msg = "World!";
+            char *msg = "a";
             server.sendsig(msg, strlen(msg));
         } else if(digitalRead(32) == HIGH) {
-            char *msg = "How";
+            char *msg = "s";
             server.sendsig(msg, strlen(msg));
         } else if(digitalRead(33) == HIGH) {
-            char *msg = "Are";
+            char *msg = "d";
             server.sendsig(msg, strlen(msg));
         } else if(digitalRead(35) == HIGH) {
-            char *msg = "You";
+            char *msg = "b";
             server.sendsig(msg, strlen(msg));
         } else if(digitalRead(37) == HIGH) {
-            char *msg = "Today";
+            char *msg = "special";
             server.sendsig(msg, strlen(msg));
         }
     }
