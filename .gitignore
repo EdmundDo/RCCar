@@ -1,3 +1,5 @@
 *.DS_Store
 PiClient/PiClient.xcodeproj/xcuserdata/
 PiClient/PiClient.xcodeproj/project.xcworkspace/xcuserdata/
+PiClientRF/PiClientRF.xcodeproj/xcuserdata/
+PiClientRF/PiClientRF.xcodeproj/project.xcworkspace/xcuserdata/

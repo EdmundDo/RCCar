@@ -1,74 +1,59 @@
+#include <SPI.h>
+#include "RF24.h"
+#include "printf.h"
 
-#include <ESP8266WiFi.h>
-#include <WiFiUdp.h>
+#define DW 1 
+#define DA 2
+#define DS 3
+#define DD 4
 
-#define DW D1 
-#define DA D2
-#define DS D3
-#define DD D4
-
-const char *ssid = "RC";
-const char *password = "12345678";
-const int port = 3305;
-const int channel = 3;
-
-WiFiUDP udp;
+RF24 radio(8,7);  // CE, CSN
 
 void setup() {
-  // Set pins  
-  pinMode(DW,OUTPUT);
-  pinMode(DA,OUTPUT);
-  pinMode(DS,OUTPUT);
-  pinMode(DD ,OUTPUT);
-
-  // Start serial
   Serial.begin(9600);
-  Serial.println("Configuring access point...");
-
-  // Start Access point on specified channel
-  WiFi.softAP(ssid, password, channel);
-  IPAddress myIP = WiFi.softAPIP();
-
-  // Debug
-  Serial.print("AP IP address: ");
-  Serial.println(myIP);
-
-  // Start capture
-  udp.begin(port);
-  Serial.println("Server started");
+  printf_begin();
+  
+  radio.begin();
+  radio.setChannel(76);                       // Change if there is interference
+  radio.setPALevel(RF24_PA_MAX);              // Power level. Change to RF24_PA_MIN.
+  radio.setDataRate(RF24_1MBPS);              // Speed. Lower, better range.
+  radio.setAutoAck(1);
+  radio.openReadingPipe(1, 0xF0F0F0F0E1LL);   // Opens address on pipe 1
+  radio.enableDynamicPayloads();
+  radio.startListening();
+  radio.printDetails();                       // Debug
+  radio.powerUp();
 }
 
 void loop() {
-  int packetSize = udp.parsePacket();
+  delay(200);
   
-  if (packetSize) {
-    char buf[packetSize];
-
-    // Debug
-    Serial.print("Received packet of size ");
-    Serial.println(packetSize);
-    Serial.print("From ");
-    IPAddress remoteIp = udp.remoteIP();
-    Serial.print(remoteIp);
-    Serial.print(", port ");
-    Serial.println(udp.remotePort());
-
-    int len = udp.read(buf, packetSize);
-    if (len > 0) { buf[len] = 0; }
+  if (radio.available()) {
+    uint8_t len = radio.getDynamicPayloadSize();
+    byte data[len];
+    
+    radio.read(&data, len);
+    
+    if (len > 0) { data[len] = 0; }
 
     // Debug
     Serial.println("Contents:");
-    Serial.println(buf);
     
-    if (strcmp(buf, "w") == 0) { moveForward(); }
+    for(int i = 0; i < 32; i++) {
+      Serial.print(data[i]);
+      Serial.print(" ");
+    }
+    Serial.println();
     
-    if (strcmp(buf, "s") == 0) { moveBackward(); }
+    if (data[0] == 'w') { moveForward(); }
+    
+    if (data[0] == 's') { moveBackward(); }
 
-    if (strcmp(buf, "a") == 0) { turnLeft(); }
+    if (data[0] == 'a') { turnLeft(); }
     
-    if (strcmp(buf, "d") == 0) { turnRight(); }  
+    if (data[0] == 'd') { turnRight(); }  
      
-    if (strcmp(buf, "b") == 0) { stopMotors(); }
+    if (data[0] == 'b') { stopMotors(); }
     
   } else { stopMotors(); }
 }
